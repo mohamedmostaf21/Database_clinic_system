@@ -1,0 +1,218 @@
+CREATE TABLE Person
+(
+    SSN INT NOT NULL,
+    FNAME VARCHAR(50) NOT NULL,
+    LNAME VARCHAR(50) NOT NULL,
+    BirthDate DATE NOT NULL,
+    Gender CHAR(1) NOT NULL,
+    Address VARCHAR(100) NOT NULL,
+    PRIMARY KEY (SSN)
+);
+CREATE TABLE Patient
+(
+    SSN INT NOT NULL,
+    Diagnosis VARCHAR(50) NOT NULL,
+    PatientID INT NOT NULL,
+    PRIMARY KEY (SSN),
+    FOREIGN KEY (SSN) REFERENCES Person(SSN)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    UNIQUE (PatientID)
+);
+CREATE TABLE Employee
+(
+    SSN INT NOT NULL,
+    EmployeeID INT NOT NULL,
+    Salary INT NOT NULL,
+    WorkingHours INT NOT NULL,
+    Shift VARCHAR(50) NOT NULL,
+    PRIMARY KEY (SSN),
+    FOREIGN KEY (SSN) REFERENCES Person(SSN)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    UNIQUE (EmployeeID)
+);
+CREATE TABLE Room
+(
+    RoomID INT NOT NULL,
+    FloorNo INT NOT NULL,
+    PRIMARY KEY (RoomID)
+);
+
+CREATE TABLE Receptionist
+(
+    SSN INT NOT NULL,
+    DeskNo INT NOT NULL,
+    PRIMARY KEY (SSN),
+    FOREIGN KEY (SSN) REFERENCES Employee(SSN)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+CREATE TABLE MedicalCareRoom
+(
+    RoomID INT NOT NULL,
+    BedsCount INT NOT NULL,
+    PRIMARY KEY (RoomID),
+    FOREIGN KEY (RoomID) REFERENCES Room(RoomID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+CREATE TABLE OperationRoom
+(
+    RoomID INT NOT NULL,
+    MaxDoctorsNo INT NOT NULL,
+    PRIMARY KEY (RoomID),
+    FOREIGN KEY (RoomID) REFERENCES Room(RoomID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+CREATE TABLE MedicalRecord
+(
+    MedicalRecordID INT NOT NULL,
+    ExaminationDate DATE NOT NULL,
+    Description VARCHAR(150) NOT NULL,
+    PatientSSN INT NOT NULL,
+    PRIMARY KEY (MedicalRecordID),
+    FOREIGN KEY (PatientSSN) REFERENCES Patient(SSN)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+CREATE TABLE Admin
+(
+    SSN INT NOT NULL,
+    AdminID INT NOT NULL,
+    PRIMARY KEY (SSN),
+    FOREIGN KEY (SSN) REFERENCES Employee(SSN)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    UNIQUE (AdminID)
+);
+
+CREATE TABLE OutPatient
+(
+    SSN INT NOT NULL,
+    ReservationNo INT NOT NULL,
+    PRIMARY KEY (SSN),
+    FOREIGN KEY (SSN) REFERENCES Patient(SSN)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    UNIQUE (ReservationNo)
+);
+CREATE TABLE Clinic
+(
+    ClinicID INT NOT NULL,
+    ClinicType VARCHAR(50) NOT NULL,
+    FloorNo INT NOT NULL,
+    PRIMARY KEY (ClinicID)
+);
+CREATE TABLE VISITS
+(
+    OutPatientSSN INT NOT NULL,
+    ClinicID INT NOT NULL,
+    VisitDate DATE NOT NULL,
+    PRIMARY KEY (OutPatientSSN, ClinicID),
+    FOREIGN KEY (OutPatientSSN) REFERENCES OutPatient(SSN)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+    FOREIGN KEY (ClinicID) REFERENCES Clinic(ClinicID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+CREATE TABLE Person_PhoneNo
+(
+    SSN INT NOT NULL,
+    PhoneNo INT NOT NULL,
+    PRIMARY KEY (PhoneNo, SSN),
+    FOREIGN KEY (SSN) REFERENCES Person(SSN)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+CREATE TABLE OperationRoom_Equipment
+(
+    OperationRoomID INT NOT NULL,
+    Equipment VARCHAR(50) NOT NULL,
+    PRIMARY KEY (Equipment, OperationRoomID),
+    FOREIGN KEY (OperationRoomID) REFERENCES OperationRoom(RoomID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+
+CREATE TABLE Operation
+(
+    OperationID INT NOT NULL,
+    OperationName VARCHAR(50) NOT NULL,
+    OperationDate DATE NOT NULL,
+    OperationRoomID INT NOT NULL,
+    PRIMARY KEY (OperationID),
+    FOREIGN KEY (OperationRoomID) REFERENCES OperationRoom(RoomID)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
+);
+CREATE TABLE InPatient
+(
+    SSN INT NOT NULL,
+    AdmissionDate DATE NOT NULL,
+    DischargeDate DATE,
+    OperationID INT,
+    RoomID INT NOT NULL,
+    PRIMARY KEY (SSN),
+    FOREIGN KEY (SSN) REFERENCES Patient(SSN)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    FOREIGN KEY (OperationID) REFERENCES Operation(OperationID)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+    FOREIGN KEY (RoomID) REFERENCES MedicalCareRoom(RoomID)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
+);
+CREATE TABLE Department
+(
+    DepartmentID INT NOT NULL,
+    DepartmentName VARCHAR(50) NOT NULL,
+    MGRSSN INT,
+    PRIMARY KEY (DepartmentID)
+);
+CREATE TABLE Doctor
+(
+    SSN INT NOT NULL,
+    Speciality VARCHAR(50) NOT NULL,
+    DepartmentID INT NOT NULL,
+    ClinicID INT,
+    PRIMARY KEY (SSN),
+    FOREIGN KEY (SSN) REFERENCES Employee(SSN)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    FOREIGN KEY (DepartmentID) REFERENCES Department(DepartmentID)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+    FOREIGN KEY (ClinicID) REFERENCES Clinic(ClinicID)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+);
+
+CREATE TABLE Nurse
+(
+    SSN INT NOT NULL,
+    NursingService VARCHAR(100) NOT NULL,
+    DepartmentID INT NOT NULL,
+    PRIMARY KEY (SSN),
+    FOREIGN KEY (SSN) REFERENCES Employee(SSN)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    FOREIGN KEY (DepartmentID) REFERENCES Department(DepartmentID)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
+);
+CREATE TABLE PERFORMS
+(
+    DoctorSSN INT NOT NULL,
+    OperationID INT NOT NULL,
+    PRIMARY KEY (DoctorSSN, OperationID),
+    FOREIGN KEY (DoctorSSN) REFERENCES Doctor(SSN)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+    FOREIGN KEY (OperationID) REFERENCES Operation(OperationID)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
+);
